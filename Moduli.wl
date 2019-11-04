@@ -5,12 +5,8 @@ BeginPackage["RockMatica`Moduli`"]
 
 
 (* ::Input::Initialization:: *)
-rpIsotropicElasticTensor::usage="rpIsotropicElasticTensor[a_rpRock, b_rpFluid] returns the elastic tensor (in Voigt notation) of a rock based on Gassmann's formula. If additionally the option 'Viscoelastic->True, Frequency->freq' are given, a viscoelastic, complex-valued tensor is returned based on the Chapman et al. (2002) model. In that case, the rpRock object \!\(\*
-StyleBox[\"a\",\nFontSlant->\"Italic\"]\)\!\(\*
-StyleBox[\" \",\nFontSlant->\"Italic\"]\)needs to have defined crack density, aspect ratio and reference frequency predefined.";
-rpTIAnisotropicElasticTensor::usage = "rpTIAnisotropicElasticTensor[a_rpRock, b_rpFluid] returns the VTI anisotropic elastic tensor (in Voigt notation) of a rock based on the anisotropic Gassmann's formula. If additionally the option 'Viscoelastic->True, Frequency->freq' are given, a viscoelastic, complex-valued tensor is returned based on the Chapman et al. (2002) model. In that case, the rpRock object \!\(\*
-StyleBox[\"a\",\nFontSlant->\"Italic\"]\)\!\(\*
-StyleBox[\" \",\nFontSlant->\"Italic\"]\)needs to have defined crack density, fracture density, aspect ratio, reference frequency and ratio of fracture-to-microcrack reference frequency predefined.";
+rpIsotropicElasticTensor::usage="rpIsotropicElasticTensor[a_rpRock, b_rpFluid] returns the elastic tensor (in Voigt notation) of a rock based on Gassmann's formula. If additionally the option 'Viscoelastic->True, Frequency->freq' are given, a viscoelastic, complex-valued tensor is returned based on the Chapman et al. (2002) model. In that case, the rpRock object 'a' needs to have defined crack density, aspect ratio and reference frequency predefined.";
+rpTIAnisotropicElasticTensor::usage = "rpTIAnisotropicElasticTensor[a_rpRock, b_rpFluid] returns the VTI anisotropic elastic tensor (in Voigt notation) of a rock based on the anisotropic Gassmann's formula. If additionally the option 'Viscoelastic->True, Frequency->freq' are given, a viscoelastic, complex-valued tensor is returned based on the Chapman et al. (2002) model. In that case, the rpRock object 'a'needs to have defined crack density, fracture density, aspect ratio, reference frequency and ratio of fracture-to-microcrack reference frequency predefined.";
 
 
 (* ::Input::Initialization:: *)
