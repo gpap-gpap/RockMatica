@@ -35,6 +35,6 @@ This way, a new rock physics model can be implemented at the rock definition sta
 ## Calculate Elastic Tensor
 
 
-# To Do-s
+# To-Do
 - count length of rpRock input to ensure that the rock is iso/aniso tropic. OR add a flag ```Mathematica anisotropic->True```
 - add multi fluid description
