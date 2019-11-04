@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-BeginPackage["RockPhysics`Base`"]
+BeginPackage["RockMatica`Base`"]
 
 
 rpRock::usage = "rpRock[RockName, DryBulkModulus, \
@@ -16,9 +16,6 @@ must also be provided
 
 rpFluid::usage = "rpFluid[FluidName, FluidModulus, FluidViscosity, \
 FluidDensity] defines a fluid object called by rpFluid[FluidName]"
-
-
-rpAnisotropicRock::usage = 
 
 
 Begin["Private`"]

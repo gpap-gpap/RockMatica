@@ -1,7 +1,7 @@
 (* ::Package:: *)
 
 (* ::Input::Initialization:: *)
-BeginPackage["RockPhysics`Moduli`"]
+BeginPackage["RockMatica`Moduli`"]
 
 
 (* ::Input::Initialization:: *)
@@ -148,7 +148,7 @@ SparseArray[{
 
 Options[rpIsotropicElasticTensor] = {Viscoelastic->False, Frequency->None};
 SetAttributes[rpIsotropicElasticTensor,HoldAll];
-rpIsotropicElasticTensor[a_RockPhysics`Base`rpRock, b_RockPhysics`Base`rpFluid, OptionsPattern[]]:=
+rpIsotropicElasticTensor[a_RockMatica`Base`rpRock, b_RockMatica`Base`rpFluid, OptionsPattern[]]:=
 Module[{
 	elasticIsoQ = Query[{#DryModulus, #ShearModulus, #MineralModulus, #Porosity}&],
 	elasticTIQ = Query[{#C11, #C12, #C13, #C33, #C44, #MineralModulus, #Porosity}&],
@@ -168,7 +168,7 @@ Check[
 			Module[{C11, C12, C13, C33, C44, Km, phi,Kf},
 				{C11, C12, C13, C33, C44, Km, phi}=elasticTIQ[a];
 				Kf=fluidQ[b];
-				gassmannTIAnisotropic[Kd, mu, Km, phi, Kf]
+				gassmannTIAnisotropic[C11, C12, C13, C33, C44, Km, phi, Kf]
 				]
 			],
 			$Failed
@@ -221,111 +221,6 @@ Check[
 			{emc, aspRat, taufreq}=microcrackQ[a["MicrocrackParameters"]];
 			squirt2[Kd, Km, phi,Kf, emc, aspRat, taufreq, freq, etaf]
 		]*)
-$Failed]
-]
-
-
-Options[rpTIAnisotropicElasticTensor] = {Viscoelastic->False, Frequency->None};
-SetAttributes[rpTIAnisotropicElasticTensor,HoldAll];
-rpTIAnisotropicElasticTensor[a_RockPhysics`Base`rpRock, b_RockPhysics`Base`rpFluid, OptionsPattern[]]:=
-Module[{
-	elasticQ=Query[{#DryModulus, #ShearModulus, #MineralModulus, #Porosity}&],
-	microcrackQ=Query[{#CrackDensity, #AspectRatio, #ReferenceFrequency}&],
-	fluidQ=Query[{#FluidModulus, #FluidViscosity}&]},
-Check[
-	Which[
-	!OptionValue[Viscoelastic], 
-		Module[{Kd, Km, mu,  phi,Kf},
-			{Kd, mu, Km, phi}=elasticQ[a];
-			Kf=First@fluidQ[b];
-			gassmannIsotropic[Kd, mu, Km, phi, Kf]
-		],
-	(OptionValue[Viscoelastic]&&(And@@(NumericQ/@microcrackQ[a["MicrocrackParameters"]])&&NumericQ@OptionValue[Frequency])), 
-		Module[{Kd, Km, mu, phi, Kf, etaf, emc, aspRat, taufreq},
-			{Kd, mu, Km, phi}=elasticQ[a];
-			{Kf, etaf}=fluidQ[b];
-			{emc, aspRat, taufreq}=microcrackQ[a["MicrocrackParameters"]];
-			squirtIsotropic[mu, Kd, Km, phi,Kf, emc, aspRat, taufreq, OptionValue[Frequency], etaf]
-		]](*,
-	(OptionValue[Viscoelastic]&&(And@@(NumericQ/@microcrackQ[a["MicrocrackParameters"]]))&&(And@@(NumericQ/@fractureQ[a["FractureParameters"]]))),
-		Module[{Kd, Km, phi, Kf, etaf, emc, aspRat, taufreq, emf, relFreq},
-			{Kd, Km, phi}=elasticQ[a];
-			{Kf, etaf}=fluidQ[b];
-			{emc, aspRat, taufreq}=microcrackQ[a["MicrocrackParameters"]];
-			squirt2[Kd, Km, phi,Kf, emc, aspRat, taufreq, freq, etaf]
-		]*)
-	],
-$Failed]
-]
-
-
-Options[rpBulkModulus] = {Viscoelastic->False, Frequency->None};
-SetAttributes[rpBulkModulus,HoldAll];
-rpBulkModulus[a_RockPhysics`Base`rpRock, b_RockPhysics`Base`rpFluid, OptionsPattern[]]:=
-Module[{elasticQ=Query[{#DryModulus, #MineralModulus, #Porosity}&],
-	microcrackQ=Query[{#CrackDensity, #AspectRatio, #ReferenceFrequency}&],
-	fractureQ=Query[{#FractureDensity, #FractureFrequencyRatio}&],
-	fluidQ=Query[{#FluidModulus, #FluidViscosity}&]},
-Check[
-	Which[
-	!OptionValue[Viscoelastic], 
-		Module[{Kd, Km, phi,Kf},
-			{Kd, Km, phi}=elasticQ[a];
-			Kf=First@fluidQ[b];
-			gassmannTIAnisotropic[Kd, Km, phi,Kf]
-		],
-	(OptionValue[Viscoelastic]&&(And@@(NumericQ/@microcrackQ[a["MicrocrackParameters"]])&&NumericQ@OptionValue[Frequency])), 
-		Module[{Kd, Km, phi, Kf, etaf, emc, aspRat, taufreq},
-			{Kd, Km, phi}=elasticQ[a];
-			{Kf, etaf}=fluidQ[b];
-			{emc, aspRat, taufreq}=microcrackQ[a["MicrocrackParameters"]];
-			squirtBulk[Kd, Km, phi,Kf, emc, aspRat, taufreq, OptionValue[Frequency], etaf]
-		](*,
-	(OptionValue[Viscoelastic]&&(And@@(NumericQ/@microcrackQ[a["MicrocrackParameters"]]))&&(And@@(NumericQ/@fractureQ[a["FractureParameters"]]))),
-		Module[{Kd, Km, phi, Kf, etaf, emc, aspRat, taufreq, emf, relFreq},
-			{Kd, Km, phi}=elasticQ[a];
-			{Kf, etaf}=fluidQ[b];
-			{emc, aspRat, taufreq}=microcrackQ[a["MicrocrackParameters"]];
-			squirt2[Kd, Km, phi,Kf, emc, aspRat, taufreq, freq, etaf]
-		]*)
-	],
-$Failed]
-]
-
-
-Options[rpShearModulus] = {Viscoelastic->False, Frequency->None};
-SetAttributes[rpShearModulus,HoldAll];
-rpShearModulus[a_RockPhysics`Base`rpRock, b_RockPhysics`Base`rpFluid, OptionsPattern[]]:=
-Module[{
-	shearQ=Query[#ShearModulus&],
-	elasticQ=Query[{#DryModulus, #MineralModulus, #Porosity}&],
-	microcrackQ=Query[{#CrackDensity, #AspectRatio, #ReferenceFrequency}&],
-	fractureQ=Query[{#FractureDensity, #FractureFrequencyRatio}&],
-	fluidQ=Query[{#FluidModulus, #FluidViscosity}&]},
-Check[
-	Which[
-	!OptionValue[Viscoelastic], 
-		Module[{mu,Kf},
-			mu=shearQ[a];
-			Kf=First@fluidQ[b];
-			gassmannShear[mu,Kf]
-		],
-	(OptionValue[Viscoelastic]&&(And@@(NumericQ/@microcrackQ[a["MicrocrackParameters"]])&&NumericQ@OptionValue[Frequency])), 
-		Module[{Kd, Km,mu, phi, Kf, etaf, emc, aspRat, taufreq},
-			mu=shearQ[a];
-			{Kd, Km, phi}=elasticQ[a];
-			{Kf, etaf}=fluidQ[b];
-			{emc, aspRat, taufreq}=microcrackQ[a["MicrocrackParameters"]];
-			squirtShear[mu, Kd, Km, phi,Kf, emc, aspRat, taufreq, OptionValue[Frequency], etaf]
-		](*,
-	(OptionValue[Viscoelastic]&&(And@@(NumericQ/@microcrackQ[a["MicrocrackParameters"]]))&&(And@@(NumericQ/@fractureQ[a["FractureParameters"]]))),
-		Module[{Kd, Km, phi, Kf, etaf, emc, aspRat, taufreq, emf, relFreq},
-			{Kd, Km, phi}=elasticQ[a];
-			{Kf, etaf}=fluidQ[b];
-			{emc, aspRat, taufreq}=microcrackQ[a["MicrocrackParameters"]];
-			squirt2[Kd, Km, phi,Kf, emc, aspRat, taufreq, OptionValue[Frequency], etaf]
-		]*)
-	],
 $Failed]
 ]
 
