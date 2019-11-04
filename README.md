@@ -22,13 +22,9 @@ one can recall the rock named "sandstone" by simply running
 
 ```Mathematica
 rpRock["sandstone"]
-Out: <|"RockName" -> "sandstone", "DryModulus" -> 12.4, 
- "ShearModulus" -> 11., "MineralModulus" -> 36., "Porosity" -> 0.26, 
- "MineralDensity" -> 2.6, 
- "MicrocrackParameters" -> <|"CrackDensity" -> 0.013, 
-   "AspectRatio" -> 0.00001, "ReferenceFrequency" -> 1.|>, 
- "FractureParameters" -> <|"FractureDensity" -> None, 
-   "FractureFrequencyRatio" -> None|>|>
+Out: <|"RockName" -> "sandstone", "DryModulus" -> 12.4, "ShearModulus" -> 11., "MineralModulus" -> 36., "Porosity" -> 0.26, "MineralDensity" -> 2.6, 
+ "MicrocrackParameters" -> <|"CrackDensity" -> 0.013,  "AspectRatio" -> 0.00001, "ReferenceFrequency" -> 1.|>, 
+ "FractureParameters" -> <|"FractureDensity" -> None, "FractureFrequencyRatio" -> None|>|>
 ```
 
 The option "MicrocrackParameters" refers to the viscoelastic rock physics model based on Eshelby inclusions detailed in Chapman, Mark, Sergei V. Zatsepin, and Stuart Crampin. "Derivation of a microstructural poroelastic model." Geophysical Journal International 151.2 (2002): 427-451.
