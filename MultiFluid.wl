@@ -1,59 +1,60 @@
 (* ::Package:: *)
 
+(*  Mathematica Package  *)
+(* :Title:   RockMatica  *)
+(* :Author:  Giorgos Papageorgiou <gpap.gpap@gmail.com> *)
+(* :Context: RockMatica` *)
+(* :Date:    01/11/2019  *)
+
+(* :Version: 12 *)
+(* :Copyright: (c) 2019 Giorgos Papageorgiou *)
+
+
 (* ::Input::Initialization:: *)
 BeginPackage["RockMatica`MultiFluid`"]
 
 
 (* ::Input::Initialization:: *)
-rpFluidMix::usage = "rpFluidMix[K1, K2, s1, capillaryParameter->q]"; 
-rpViscosityMix::usage = "rpViscosityMix[\[Eta]1, \[Eta]2, s1, capillaryParameter->q, \
-BrooksCoreyParameters->{\[Lambda],{sw_red, snw_red}}]"; 
-rpBrooksCorey::usage = "rpBrooksCorey[\[Lambda], {sw_red, snw_red}]"; 
-rpTimeConstantMix::usage = "rpTimeConstantMix[\[Eta]1, \[Eta]2, s1, capillaryParameter->q, \
-BrooksCoreyParameters->{\[Lambda],{sw_red, snw_red}}]"; 
-rpDensityMix::usage = "rpDensityMix[\[Rho]1, \[Rho]2, s1]"
+rpFluidMix::usage="rpFluidMix[fluid1_rpFluid, fluid2_rpFluid, FluidSaturation->s, capillaryParameter->q, BrooksCoreyParameters->{lambda,{SnwR, SwR}}]\
+	defines a FluidMix object assuming first fluid is wetting and second fluid nonwetting. The fluid mix is an association with the additional keys 'RelativePermeability', 'FirstFluidSaturation; and 'CapillaryParameter'. The name of the fluid mix follows the convention fluid1Name-fluid2Name-Mix ";
 
 
 (* ::Input::Initialization:: *)
 Begin["Private`"]
 
 
-numerical = Chop@N@#&;
-
-
-(* ::Input::Initialization:: *)
-Options[rpFluidModuliMix] = {capillaryParameter -> 1}; 
-rpFluidModuliMix[K1_, K2_, s1_,opts:OptionsPattern[]] := 
-   Module[{q = OptionValue[capillaryParameter]}, 
-  (s1 + q*(1 - s1))/(s1/K1 + q*((1 - s1)/K2))//numerical]; 
-rpBrooksCorey[\[Lambda]_, {swr_,snwr_}] := Module[{kw, knw, seff}, 
-    seff = Clip[(#1 - swr)/(1 - swr - snwr),{0, 1}] & ; 
-     kw = Clip[seff[#1]^((2 + 3*\[Lambda])/\[Lambda]),{0, 1}]&; 
-  knw = Clip[(1 - seff[#1])^2*(1 - seff[#1]^((2 + \[Lambda])/\[Lambda])), {0, 1}]&; 
-     {kw[#1], knw[#1]}&]; 
-Options[rpViscosityMix] ={BrooksCoreyParameters ->{1, {0, 0}}}; 
-rpViscosityMix[\[Eta]1_, \[Eta]2_, s1_,opts:OptionsPattern[{rpViscosityMix,rpFluidModuliMix}]] := 
-   Module[{q = OptionValue[capillaryParameter], 
-     k = rpBrooksCorey@@OptionValue[BrooksCoreyParameters]}, (s1 + q*(1 - s1))/(k[s1][[1]]/\[Eta]1 + q*(k[s1][[2]]/\[Eta]2))//numerical]; 
-Options[rpTimeConstantMix] = 
-   {capillaryParameter -> 1,BrooksCoreyParameters -> {1, {0, 0}}}; 
-rpTimeConstantMix[\[Eta]1_, \[Eta]2_,s1_, opts:OptionsPattern[
-      {rpViscosityMix,rpTimeConstantMix}]] := 
-   Module[{q = OptionValue[capillaryParameter], 
-     bk = OptionValue[BrooksCoreyParameters]}, 
-    (1/\[Eta]1)*rpViscosityMix[\[Eta]1,\[Eta]2, s1, capillaryParameter -> q,BrooksCoreyParameters ->bk//numerical]]; 
-rpDensityMix[\[Rho]1_, \[Rho]2_, s1_]:=\[Rho]1 s1 + (1-s1)\[Rho]2;
-
-
-Options[rpMultiFluid] = {FluidSaturation->0., PatchParameter->1}
-rpMultiFluid[a_RockMatica`Base`rpFluid, b_RockMatica`Base`rpFluid, OptionsPattern[]]:=
-	Module[{bulk, visc, dens},
-	
-	rpMultiFluid[fluidName]:=<|
-	"FluidName"->fluidName,
-	"FluidModulus"->fluidMod, 
-	"FluidViscosity"->fluidVisc,
-	"FluidDensity"->fluidDens|>
+Options[rpFluidMix] = {FluidSaturation->0., PatchParameter->1, BrooksCoreyParameters->{1,{0,0}}}
+SetAttributes[rpFluidMix,HoldAll];
+rpFluidMix[a_RockMatica`Base`rpFluid, b_RockMatica`Base`rpFluid, OptionsPattern[]]:=
+	Module[{bulk, visc, fluidName, brooksCorey, relperm, dens, s, q, l, K1, K2, eta1, eta2, rho1, rho2},
+		fluidName=a["FluidName"]<>"-"<>b["FluidName"]<>"-Mix";
+		s = OptionValue[FluidSaturation];
+		q = OptionValue[PatchParameter];
+		l = OptionValue[BrooksCoreyParameters];
+		K1=a["FluidModulus"];
+		K2=b["FluidModulus"];
+		eta1=a["FluidViscosity"];
+		eta2=b["FluidViscosity"];
+		rho1=a["FluidDensity"];
+		rho2=a["FluidDensity"];
+		brooksCorey[lambda_, {swr_,snwr_}] := Module[{kw, knw, seff},
+			seff = Clip[(#1 - swr)/(1 - swr - snwr),{0, 1}] &;
+			kw = Clip[seff[#1]^((2 + 3*lambda)/lambda),{0, 1}]&;
+			knw = Clip[(1 - seff[#1])^2*(1 - seff[#1]^((2 + lambda)/lambda)), {0, 1}]&;
+			{kw[#1], knw[#1]}&];
+		relperm = (brooksCorey@@l)[s];
+		bulk=(s + q*(1 - s))/(s/K1 + q*((1 - s)/K2));
+		visc=(s + q*(1 - s))/(relperm[[1]]/eta1 + q*(relperm[[2]]/eta2));
+		dens= rho1 s + (1-s)rho2;
+		rpMultiFluid[fluidName]=<|
+			"FluidName"->fluidName,
+			"FluidModulus"->bulk, 
+			"FluidViscosity"->visc,
+			"FluidDensity"->dens,
+			"RelativePermeability"->(brooksCorey@@l)[s],
+			"FirstFluidSaturation"->s,
+			"CapillaryParameter"->q
+			|>//N
 	]
 
 
