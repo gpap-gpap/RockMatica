@@ -7,9 +7,9 @@ rpRock::usage = "rpRock[RockName, DryBulkModulus, \
 ShearModulus, MineralModulus, Porosity, MineralDensity]\
 defines a rock object called by rpRock[RockName]. \
 For an isotropically viscoelastic rock the option \
-microcrackParameters->{CrackDensity, AspectRatio, ReferenceFrequency}\
+MicrocrackParameters->{CrackDensity, AspectRatio, ReferenceFrequency}\
 can be given, whereas for an anisotropically viscoelastic rock\
-fractureParameters->{FractureDensity, FractureFrequencyRatio}\
+FractureParameters->{FractureDensity, FractureFrequencyRatio}\
 must also be provided
 "
 
@@ -21,11 +21,11 @@ FluidDensity] defines a fluid object called by rpFluid[FluidName]"
 Begin["Private`"]
 
 
-Options[rpRock]={MicrocrackParameters->{None, 10^-5, None}, FractureParameters->{None,None}};
+Options[rpRock]={MicrocrackParameters->{None, 10^-5, None}, FractureParameters->{None, None, None, None}};
 rpRock[name_String, drymod_, shearmod_, mineralmod_, porosity_, mineraldens_ , OptionsPattern[]]:=
-Module[{crackDensity, aspectRatio, referenceFrequency, fractureDensity, fractureRefFreq},
+Module[{crackDensity, aspectRatio, referenceFrequency, fractureDensity, fractureRefFreq, lambda, mu},
 {crackDensity, aspectRatio, referenceFrequency}=Evaluate@OptionValue[MicrocrackParameters];
-{fractureDensity, fractureRefFreq}=Evaluate@OptionValue[FractureParameters];
+{fractureDensity, fractureRefFreq, lambda, mu}=Evaluate@OptionValue[FractureParameters];
 rpRock[name]=<|
 "RockName"->name, 
 "DryModulus"->drymod, 
@@ -40,14 +40,16 @@ rpRock[name]=<|
 	|>,
 "FractureParameters"-><|
 	"FractureDensity"->fractureDensity,
-	"FractureFrequencyRatio"->fractureRefFreq
+	"FractureFrequencyRatio"->fractureRefFreq,
+	"EffectiveMediumLambda"->lambda,
+	"EffectiveMediumMu"->mu
 	|>
 |>//N
 ];
 rpRock[name_String, c11_, c12_, c13_, c33_, c44_, mineralmod_, porosity_, mineraldens_ , OptionsPattern[]]:=
-Module[{crackDensity, aspectRatio, referenceFrequency, fractureDensity, fractureRefFreq},
+Module[{crackDensity, aspectRatio, referenceFrequency, fractureDensity, fractureRefFreq, lambda, mu},
 {crackDensity, aspectRatio, referenceFrequency}=Evaluate@OptionValue[MicrocrackParameters];
-{fractureDensity, fractureRefFreq}=Evaluate@OptionValue[FractureParameters];
+{fractureDensity, fractureRefFreq, lambda, mu}=Evaluate@OptionValue[FractureParameters];
 rpRock[name]=<|
 "RockName"->name, 
 "C11"->c11, 
@@ -65,7 +67,9 @@ rpRock[name]=<|
 	|>,
 "FractureParameters"-><|
 	"FractureDensity"->fractureDensity,
-	"FractureFrequencyRatio"->fractureRefFreq
+	"FractureFrequencyRatio"->fractureRefFreq,
+	"EffectiveMediumLambda"->lambda,
+	"EffectiveMediumMu"->mu
 	|>
 |>//N
 ];

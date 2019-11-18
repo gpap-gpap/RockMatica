@@ -3,7 +3,7 @@
 (*  Mathematica Package  *)
 (* :Title:   RockMatica  *)
 (* :Author:  Giorgos Papageorgiou <gpap.gpap@gmail.com> *)
-(* :Context: RockMatica` *)
+(* :Context: RockMatica`Multifluid` *)
 (* :Date:    01/11/2019  *)
 
 (* :Version: 12 *)
@@ -36,7 +36,7 @@ rpFluidMix[a_RockMatica`Base`rpFluid, b_RockMatica`Base`rpFluid, OptionsPattern[
 		eta1=a["FluidViscosity"];
 		eta2=b["FluidViscosity"];
 		rho1=a["FluidDensity"];
-		rho2=a["FluidDensity"];
+		rho2=b["FluidDensity"];
 		brooksCorey[lambda_, {swr_,snwr_}] := Module[{kw, knw, seff},
 			seff = Clip[(#1 - swr)/(1 - swr - snwr),{0, 1}] &;
 			kw = Clip[seff[#1]^((2 + 3*lambda)/lambda),{0, 1}]&;
@@ -46,7 +46,7 @@ rpFluidMix[a_RockMatica`Base`rpFluid, b_RockMatica`Base`rpFluid, OptionsPattern[
 		bulk=(s + q*(1 - s))/(s/K1 + q*((1 - s)/K2));
 		visc=(s + q*(1 - s))/(relperm[[1]]/eta1 + q*(relperm[[2]]/eta2));
 		dens= rho1 s + (1-s)rho2;
-		rpMultiFluid[fluidName]=<|
+		rpFluidMix[fluidName]=<|
 			"FluidName"->fluidName,
 			"FluidModulus"->bulk, 
 			"FluidViscosity"->visc,

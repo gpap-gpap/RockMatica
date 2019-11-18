@@ -3,7 +3,7 @@
 (*  Mathematica Package  *)
 (* :Title:   RockMatica  *)
 (* :Author:  Giorgos Papageorgiou <gpap.gpap@gmail.com> *)
-(* :Context: RockMatica` *)
+(* :Context: RockMatica`Moduli` *)
 (* :Date:    01/11/2019  *)
 
 (* :Version: 12 *)
@@ -15,8 +15,7 @@ BeginPackage["RockMatica`Moduli`"]
 
 
 (* ::Input::Initialization:: *)
-rpIsotropicElasticTensor::usage="rpIsotropicElasticTensor[a_rpRock, b_rpFluid] returns the elastic tensor (in Voigt notation) of a rock based on Gassmann's formula. If additionally the option 'Viscoelastic->True, Frequency->freq' are given, a viscoelastic, complex-valued tensor is returned based on the Chapman et al. (2002) model. In that case, the rpRock object 'a' needs to have defined crack density, aspect ratio and reference frequency predefined.";
-rpTIAnisotropicElasticTensor::usage = "rpTIAnisotropicElasticTensor[a_rpRock, b_rpFluid] returns the VTI anisotropic elastic tensor (in Voigt notation) of a rock based on the anisotropic Gassmann's formula. If additionally the option 'Viscoelastic->True, Frequency->freq' are given, a viscoelastic, complex-valued tensor is returned based on the Chapman et al. (2002) model. In that case, the rpRock object 'a'needs to have defined crack density, fracture density, aspect ratio, reference frequency and ratio of fracture-to-microcrack reference frequency predefined.";
+rpElasticTensor::usage="rpElasticTensor[a_rpRock, b_rpFluid] returns the elastic tensor (in Voigt notation) of a rock with head 'rpRock' based on Gassmann's formula. If additionally the option 'Viscoelastic->True, Frequency->freq' are given, a viscoelastic, complex-valued tensor is returned based on the Chapman et al. (2002) model. In that case, the rpRock object 'a' needs to have defined crack density, aspect ratio and reference frequency predefined.";
 
 
 (* ::Input::Initialization:: *)
@@ -40,8 +39,8 @@ gassmannIsotropic[Kd_, mu_, Km_, phi_, Kf_]:=Module[{Kgas},
 	{5,5} -> mu,
 	{6,6} -> mu}]
     ];
-gassmannTIAnisotropic[c11d_, c12d_, c13d_, c33d_, c44d_, Km_, phi_, Kf_]:=Module[{norm},
-norm = Km/Kf phi (Km - Kf) + Km -(2 c11d + 2 c12d + 4c13d + c33d)/9.;
+gassmannTIAnisotropic[c11d_, c12d_, c13d_, c33d_, c44d_, Km_, phi_, Kf_]:=
+With[{norm = Km/Kf phi (Km - Kf) + Km -(2 c11d + 2 c12d + 4c13d + c33d)/9.},
 SparseArray[{
 	{1,1} -> c11d + (Km - (c11d +c12d +c13d)/3)^2/norm,
 	{2,2} -> c11d + (Km - (c11d +c12d +c13d)/3)^2/norm,
@@ -54,7 +53,8 @@ SparseArray[{
 	{3,1} -> c13d + (Km - (c11d +c12d +c13d)/3)(Km - (c33d +c13d +c13d)/3)/norm,
 	{4,4} -> c44d,
 	{5,5} -> c44d,
-	{6,6} -> c11d + (3Km - (c11d +c12d +c13d)/3)^2/norm-c12d + (3Km - (c11d +c12d +c13d)/3)^2/norm}]
+	{6,6} -> 1/2*(c11d - c12d)
+	}]
 ];
 
 
@@ -148,18 +148,18 @@ SparseArray[{
 	{3,1} -> c[13],
 	{4,4} -> c[44],
 	{5,5} -> c[44],
-	{6,6} -> c[11]-c[12]}]
+	{6,6} -> 1/2*(c[11]-c[12])}]
 ];
 
 
-Options[rpIsotropicElasticTensor] = {Viscoelastic->False, Frequency->None};
-SetAttributes[rpIsotropicElasticTensor,HoldAll];
-rpIsotropicElasticTensor[a_RockMatica`Base`rpRock, b_RockMatica`Base`rpFluid, OptionsPattern[]]:=
+Options[rpElasticTensor] = {Viscoelastic->False, Frequency->None};
+SetAttributes[rpElasticTensor,HoldAll];
+rpElasticTensor[a_RockMatica`Base`rpRock, b_RockMatica`Base`rpFluid, OptionsPattern[]]:=
 Module[{
 	elasticIsoQ = Query[{#DryModulus, #ShearModulus, #MineralModulus, #Porosity}&],
 	elasticTIQ = Query[{#C11, #C12, #C13, #C33, #C44, #MineralModulus, #Porosity}&],
 	microcrackQ = Query[{#CrackDensity, #AspectRatio, #ReferenceFrequency}&],
-	frackQ = Query[{#FractureDensity, #FractureFrequencyRatio}&],
+	frackQ = Query[{#FractureDensity, #FractureFrequencyRatio,#EffectiveMediumLambda, #EffectiveMediumMu}&],
 	fluidQ = Query[#FluidModulus&]},
 Check[
 	Which[
@@ -202,33 +202,33 @@ Check[
 			(And@@(NumericQ/@microcrackQ[a["MicrocrackParameters"]]))&&
 			(And@@(NumericQ/@microcrackQ[a["FractureParameters"]])&&
 			NumericQ@OptionValue[Frequency]),
-			Module[{C11, C12, C13, C33, C44, Km, phi,Kf},
-				{C11, C12, C13, C33, C44, Km, phi}=elasticTIQ[a];
-				Kf=First@fluidQ[b];
+			Module[{emc, aspRat, taufreq, emf, len, lam, mu, Km, phi,Kf},
+				phi=elasticTIQ[a][[-1]];
+				Kf=fluidQ[b];
 				{emc, aspRat, taufreq}=microcrackQ[a["MicrocrackParameters"]];
-				{emf, len}=frackQ[a["FractureParameters"]];
-					
+				{emf, len, lam, mu}=frackQ[a["FractureParameters"]];
 				squirtTIAnisotropic[lam, mu, phi, Kf, emc, emf, aspRat, taufreq, OptionValue[Frequency], len]
 				]
 			],
 			$Failed
 		]
 	],
-		(*Module[{Kd, Km, mu, phi, Kf, etaf, emc, aspRat, taufreq},
-			{Kd, mu, Km, phi}=elasticQ[a];
-			{Kf, etaf}=fluidQ[b];
-			{emc, aspRat, taufreq}=microcrackQ[a["MicrocrackParameters"]];
-			squirtIsotropic[mu, Kd, Km, phi,Kf, emc, aspRat, taufreq, OptionValue[Frequency], etaf]
-		]*)(*,
-	(OptionValue[Viscoelastic]&&(And@@(NumericQ/@microcrackQ[a["MicrocrackParameters"]]))&&(And@@(NumericQ/@fractureQ[a["FractureParameters"]]))),
-		Module[{Kd, Km, phi, Kf, etaf, emc, aspRat, taufreq, emf, relFreq},
-			{Kd, Km, phi}=elasticQ[a];
-			{Kf, etaf}=fluidQ[b];
-			{emc, aspRat, taufreq}=microcrackQ[a["MicrocrackParameters"]];
-			squirt2[Kd, Km, phi,Kf, emc, aspRat, taufreq, freq, etaf]
-		]*)
 $Failed]
 ]
+
+
+(* Using upvalues *)
+RockMatica`MultiFluid`rpFluidMix/:rpElasticTensor[a_RockMatica`Base`rpRock, RockMatica`MultiFluid`rpFluidMix[f1_RockMatica`Base`rpFluid, f2_RockMatica`Base`rpFluid, opts:OptionsPattern[]], opts2:OptionsPattern[]]:=
+	Module[{mult, ref},
+		mult=RockMatica`MultiFluid`rpFluidMix[f1, f2, opts];
+		mult["FluidName"]="temp";
+		ref=a;
+		ref["RockName"]="temp";
+		ref["MicrocrackParameters","ReferenceFrequency"]=a["MicrocrackParameters"]["ReferenceFrequency"] mult["FluidViscosity"]/f1["FluidViscosity"];
+		RockMatica`Base`rpRock["temp"]=ref;
+		RockMatica`Base`rpFluid["temp"]=mult[[1;;3]];
+		rpElasticTensor[RockMatica`Base`rpRock["temp"],RockMatica`Base`rpFluid["temp"], opts2]
+	]
 
 
 (* ::Input::Initialization:: *)
