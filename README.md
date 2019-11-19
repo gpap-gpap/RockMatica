@@ -1,5 +1,5 @@
 # RockMatica
-A rock physics package for Mathematica. As it stands two isotropic and TI anisotropic elastic tensors are supported. Example workflow:
+A rock physics and wave modelling package for Mathematica. As it stands isotropic and TI anisotropic elastic and viscoelastic tensors are supported. Example workflow:
 
 ## Define rocks/fluids
 The command 
