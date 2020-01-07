@@ -172,9 +172,9 @@ Options[rpWedgeCreateNoise]={seed->$RandomSeed, sampleRate -> $SampleRate, maxSa
 rpWedgeCreateNoise[nTraces_, fLimit:(_?NumericQ):2*$$WaveletFrequency, maxLevel_:0.01, OptionsPattern[]]:=
 	Module[{fourierSeries, bandLimitNoise},
 			SeedRandom[OptionValue[seed]];
-			fourierSeries = RandomReal[{0., 1}, 7*fLimit];
-			bandLimitNoise = PadRight[fourierSeries, OptionValue[maxSamples] + IntegerPart[3*7*fLimit] + 1];
-			(maxLevel #/Max@Abs@#)&@(rpWedgeInvFourier@rpWedgeSymConjAr[bandLimitNoise])[[OptionValue[maxSamples] + 2*IntegerPart[3*7*fLimit] + 3 ;;]]//Chop//N
+			fourierSeries = RandomComplex[{-1-2*Pi*I, 1+2*Pi*I}, Ceiling[2*Pi*fLimit]];
+			bandLimitNoise = PadRight[fourierSeries, OptionValue[maxSamples]];
+			(maxLevel #/Max@Abs@#)&@(rpWedgeInvFourier@rpWedgeSymConjAr[bandLimitNoise])[[OptionValue[maxSamples] +  1 ;;]]//Chop//N
 		]
 
 
@@ -186,17 +186,26 @@ Which[
 
 
 
-Options[rpWedgeDictionaryUpdate]={sampleRate -> $SampleRate}
-rpWedgeDictionaryUpdate
-
-
-Options[rpInitiateThinLayerDictionary]={sampleRate->$SampleRate, maxSamples->$MaxSamples, threshold->0.001, scaleFactors->{1., 0.9}, scaleType->"unbiased"};
+Options[rpInitiateThinLayerDictionary]={sampleRate->$SampleRate, maxSamples->$MaxSamples, threshold->0.001, scaleType->"unbiased"};
 rpInitiateThinLayerDictionary[maxT_, tSteps_, freq:(_?NumericQ):$$WaveletFrequency, sSteps_Integer:1, opts:OptionsPattern[]]:=
 With[{w=rpWedgeElastWedgeRef[maxT, tSteps, freq, FilterRules[{opts},Options[rpWedgeElastWedgeRef]]], thres=OptionValue[threshold]},
 	With[{rot=Table[RotateRight[i,j][[OptionValue[maxSamples]+1;;]],{j,1,(Length@First@w-1)/2, sSteps},{i,w}]},
 		SparseArray@Transpose@Threshold[Flatten[rot,1],thres]
 	]
 ]
+
+
+Options[rpInitiateWaveletDictionary]={sampleRate->$SampleRate, maxSamples->$MaxSamples, threshold->0.001, scaleType->"unbiased"};
+rpInitiateWaveletDictionary[maxT_, tSteps_, freq:(_?NumericQ):$$WaveletFrequency, sSteps_Integer:1, opts:OptionsPattern[]]:=
+With[{w=rpWedgeElastWedgeRef[maxT, tSteps, freq, FilterRules[{opts},Options[rpWedgeElastWedgeRef]]], thres=OptionValue[threshold]},
+	With[{rot=Table[RotateRight[i,j][[OptionValue[maxSamples]+1;;]],{j,1,(Length@First@w-1)/2, sSteps},{i,w}]},
+		SparseArray@Transpose@Threshold[Flatten[rot,1],thres]
+	]
+]
+
+
+Options[rpWedgeDictionaryUpdate]={sampleRate -> $SampleRate}
+rpWedgeDictionaryUpdate[dictionary_Array, dataVector:{_?NumericQ..}]:=
 
 
 (* ::Input::Initialization:: *)
