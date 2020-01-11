@@ -25,6 +25,7 @@ rpWedgeModelReflectivities::usage = "rpWedgeModelReflectivities[NReflections, nT
 rpWedgeModelViscoelasticTraces::usage="rpWedgeModelViscoelasticTraces[sparseRef, maxThickness, waveletfreq, attenuation] forward models the layer model `sparseRef` with layers satisfying the thickness threshold `maxThickness` being viscoelastic. Due to limitations in the theoretical model that assumes elastic halfspaces enclosing the wedge (Papageorgiou and Chapman; 2020), the model looks at odd numbered layers unlesss the option `replaceOdd` is set to False.";
 rpWedgeCreateNoise::usage="rpWedgeCreateNoise[nTraces, freq] creates noise bandlimited up to frequency freq (by default set to twice the wavelet frequency).";
 rpInitiateThinLayerDictionary::usage="Create thin layer dictionary";
+rpInitiateWaveletDictionary::usage="Create thin layer dictionary";
 rpWedgeBasisPursuitInversion::usage="";
 rpWedgeDictionaryUpdate::usage="";
 
@@ -64,7 +65,7 @@ Which[
 ];
 
 
-Options[rpWedgeElastWedgeRef] = {sampleRate -> $SampleRate, maxSamples -> $MaxSamples, scaleFactors->{1., 0.9}, scaleType->"biased"}
+Options[rpWedgeElastWedgeRef] = {sampleRate -> $SampleRate, maxSamples -> $MaxSamples, scaleFactors->{1., .9}, scaleType->"biased"}
 rpWedgeElastWedgeRef[maxT:(_?NumericQ):1/$$WaveletFrequency, res:(_?NumericQ):20, fwav:(_?NumericQ):$$WaveletFrequency, OptionsPattern[]]:=
 With[{fr=Subdivide[0., 1/(2.*OptionValue[sampleRate]), OptionValue[maxSamples]], invFour = rpWedgeInvFourier@rpWedgeSymConjAr@#&},
 	Module[{reflSeriesOdd, reflSeriesEven, waveSingle, waveEven, waveOdd, resc = (#/Max@Abs@N@Flatten@#)&},
@@ -197,15 +198,18 @@ With[{w=rpWedgeElastWedgeRef[maxT, tSteps, freq, FilterRules[{opts},Options[rpWe
 
 Options[rpInitiateWaveletDictionary]={sampleRate->$SampleRate, maxSamples->$MaxSamples, threshold->0.001, scaleType->"unbiased"};
 rpInitiateWaveletDictionary[maxT_, tSteps_, freq:(_?NumericQ):$$WaveletFrequency, sSteps_Integer:1, opts:OptionsPattern[]]:=
-With[{w=rpWedgeElastWedgeRef[maxT, tSteps, freq, FilterRules[{opts},Options[rpWedgeElastWedgeRef]]], thres=OptionValue[threshold]},
-	With[{rot=Table[RotateRight[i,j][[OptionValue[maxSamples]+1;;]],{j,1,(Length@First@w-1)/2, sSteps},{i,w}]},
-		SparseArray@Transpose@Threshold[Flatten[rot,1],thres]
-	]
+With[{w=rpWedgeElastWedgeRef[maxT, tSteps, freq, FilterRules[{opts},Options[rpWedgeElastWedgeRef]]], thres=OptionValue[threshold], samp=OptionValue[maxSamples]},
+	With[{wEven = w[[ ;; tSteps + 1]], wOdd = w[[tSteps + 2 ;;]]},
+		With[{rotEven=Table[RotateRight[i,j][[samp+1;;]],{j,1, samp+1, sSteps},{i,wEven}],
+			   rotOdd=Table[RotateRight[i,j][[samp+1;;]],{j,1, samp+1, sSteps},{i,wOdd}]},
+			SparseArray@Transpose@Threshold[Flatten[rotEven,1]~Join~Flatten[rotOdd,1],thres]
+		]
+	]	
 ]
 
 
 Options[rpWedgeDictionaryUpdate]={sampleRate -> $SampleRate}
-rpWedgeDictionaryUpdate[dictionary_Array, dataVector:{_?NumericQ..}]:=
+rpWedgeDictionaryUpdate[dictionary_Array, dataVector:{_?NumericQ..}]:=Null;
 
 
 (* ::Input::Initialization:: *)
