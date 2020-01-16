@@ -18,7 +18,7 @@ BeginPackage["RockMatica`Wedge`"]
 rpWedgeWavelet::usage="rpWedgeWavelet[f, f0] returns the spectral value of a ricker wavelet of central frequency f0, at frequency f";
 rpWedgeSymConjAr::usage= "rpWedgeSymConjAr[FreqArray] symmetrizes and conjugates the array FreqArray in a form to be used by the inverse fourier transform. It assumes the first element corresponds to zero value if the array has odd length, otherwise adds  zero value";
 rpWedgeInvFourier::usage="rpWedgeInvFourier[SymConjArray] inverse Fourier transforms the array SymConjArray";
-rpWedgeElastWedgeRef::usage="rpWedgeElastWedgeRef[maxTime, res, waveletf, opts] creates an array with dimensions (2*res+1, 2*maxSamples + 1) corresponding to 1D convolution of a Ricker wavelet with a wedge model (first res+1 lines correpond to even, last res lines to odd wedge)";
+rpWedgeElastWedgeRef::usage="rpWedgeElastWedgeRef[maxTime, res, waveletf, opts] creates an array with dimensions (2*res, 2*maxSamples + 1) corresponding to 1D convolution of a Ricker wavelet with a wedge model (first res lines correpond to even, last res lines to odd wedge)";
 rpWedgeDispWedgeRef::usage="rpWedgeElastWedgeRef[rTop, rBot, a, maxTime, res, waveletf, opts] creates an array with dimensions (`res`, `2*maxSamples + 1`)  corresponding to 1D convolution of a Ricker wavelet with a dispersive wedge model with top reflectivity `rTop`, bottom reflectivity `rBot` and attenuation `(a-1)/(2 Sqrt[a])` (see Papageorgiou and Chapman; 2020).";
 rpWedgeModelElasticTraces::usage = "rpWedgeModelElasticTraces[NReflections, nTraces, fwav, maxAbsRef, opts] creates an array with dimensions (`nTraces`, `2*maxSamples + 1`) corresponding to `nTraces` with at most `NReflections` each, convolved with a ricker wavelet of frequency `fwav`. The reflectivities and locations of traces are chosen at random which is repeatable by setting the random seed option `seed`";
 rpWedgeModelReflectivities::usage = "rpWedgeModelReflectivities[NReflections, nTraces] creates an array with dimensions (`nTraces`, `2*maxSamples + 1`) corresponding to `nTraces` geological models with at most `NReflections` spikes each. This is essentially the deconvolved reflectivity series used to create elastic traces `rpWedgeCreateElasticTraces` if called with same number of traces and reflections.";
@@ -74,12 +74,12 @@ With[{fr=Subdivide[0., 1/(2.*OptionValue[sampleRate]), OptionValue[maxSamples]],
 			With[{wavelet = N@Chop@rpWedgeWavelet[fr,fwav], scFac = OptionValue[scaleFactors]},
 				Which[OptionValue[scaleType]=="biased",
 					waveSingle = scFac[[1]]*resc@N@Chop@invFour@(wavelet reflSeriesEven[fr,0.]);
-					waveEven = scFac[[2]]*resc@Table[N@Chop@invFour@(wavelet*reflSeriesEven[fr,dt]),{dt, Rest@Subdivide[maxT, res]}];
+					waveEven = scFac[[2]]*resc@Table[N@Chop@invFour@(wavelet*reflSeriesEven[fr,dt]),{dt, Rest@Subdivide[maxT, res-1]}];
 					waveOdd = scFac[[2]]*resc@Table[N@Chop@invFour@(wavelet*reflSeriesOdd[fr,dt]), {dt, Rest@Subdivide[maxT, res]}];
 					,
 					OptionValue[scaleType]=="unbiased",
 					waveSingle = scFac[[1]]*resc@N@Chop@invFour@(wavelet reflSeriesEven[fr,0.]);
-					waveEven = Table[scFac[[2]]*N@Chop@resc@invFour@(wavelet*reflSeriesEven[fr,dt]),{dt, Rest@Subdivide[maxT, res]}];
+					waveEven = Table[scFac[[2]]*N@Chop@resc@invFour@(wavelet*reflSeriesEven[fr,dt]),{dt, Rest@Subdivide[maxT, res-1]}];
 					waveOdd = Table[scFac[[2]]*N@Chop@resc@invFour@(wavelet*reflSeriesOdd[fr,dt]), {dt, Rest@Subdivide[maxT, res]}];
 					];
 			Developer`ToPackedArray[{waveSingle}~Join~waveEven~Join~waveOdd]
@@ -149,16 +149,18 @@ mxsamp=OptionValue[maxSamples], replOdd=OptionValue[replaceOdd]},
 				(pos2-pos1)*sRate <= crit, disp[r1, r2, pos1, pos2],
 				(pos2-pos1)*sRate > crit, el[r1, r2, pos1, pos2]
 			];
+		dispersify[{pos1_}->r1_]:= (Abs[r1]#/Max@Abs@#)&@invFour[r1*E^(I*2*Pi*fr*(pos1-1)*sRate)*rpWedgeWavelet[fr,fwav]];
 	
 	(*Define a function that groups reflection pairs accounting for
 	odd number of layers. Based on boolean option 'replOdd' make
 	odd numbered (if replOdd is True) or even numbered (if replOdd 
 	is False) layers potentially dispersive*)
 		Which[
+				Length@rules==1,intList = {rules} ,
 				(Mod[Length@rules,2] == 0)&&replOdd, intList = Partition[rules,2],
 				(Mod[Length@rules,2] == 0)&&(!replOdd), intList = {{Sequence[First@rules], Sequence[Last@rules]}}~Join~Partition[Most@Rest@rules,2],
-				(Mod[Length@rules,2] == 1)&&replOdd, intList = Partition[rules,2]~Join~{{Sequence[Last@rules], {1}->0.}},
-				(Mod[Length@rules,2] == 1)&&(!replOdd), intList = {{Sequence[First@rules], {1}->0.}}~Join~Partition[Rest@rules,2]
+				(Mod[Length@rules,2] == 1)&&replOdd, intList = Partition[Most@rules,2]~Join~{{Last@rules}},
+				(Mod[Length@rules,2] == 1)&&(!replOdd), intList = {{First@rules}}~Join~Partition[Rest@rules,2]
 			];
 			
 	(*Apply function that makes layers dispersive to every pair 
@@ -199,9 +201,9 @@ With[{w=rpWedgeElastWedgeRef[maxT, tSteps, freq, FilterRules[{opts},Options[rpWe
 Options[rpInitiateWaveletDictionary]={sampleRate->$SampleRate, maxSamples->$MaxSamples, threshold->0.001, scaleType->"unbiased"};
 rpInitiateWaveletDictionary[maxT_, tSteps_, freq:(_?NumericQ):$$WaveletFrequency, sSteps_Integer:1, opts:OptionsPattern[]]:=
 With[{w=rpWedgeElastWedgeRef[maxT, tSteps, freq, FilterRules[{opts},Options[rpWedgeElastWedgeRef]]], thres=OptionValue[threshold], samp=OptionValue[maxSamples]},
-	With[{wEven = w[[ ;; tSteps + 1]], wOdd = w[[tSteps + 2 ;;]]},
-		With[{rotEven=Table[RotateRight[i,j][[samp+1;;]],{j,1, samp+1, sSteps},{i,wEven}],
-			   rotOdd=Table[RotateRight[i,j][[samp+1;;]],{j,1, samp+1, sSteps},{i,wOdd}]},
+	With[{wEven = w[[ ;; tSteps]], wOdd = w[[tSteps + 1 ;;]]},
+		With[{rotEven=Table[RotateRight[i,j][[samp+1;;]],{j,0, samp, sSteps},{i,wEven}],
+			   rotOdd=Table[RotateRight[i,j][[samp+1;;]],{j,0, samp, sSteps},{i,wOdd}]},
 			SparseArray@Transpose@Threshold[Flatten[rotEven,1]~Join~Flatten[rotOdd,1],thres]
 		]
 	]	
