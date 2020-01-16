@@ -27,7 +27,7 @@ Out: <|"RockName" -> "sandstone", "DryModulus" -> 12.4, "ShearModulus" -> 11., "
  "FractureParameters" -> <|"FractureDensity" -> None, "FractureFrequencyRatio" -> None|>|>
 ```
 
-The option "MicrocrackParameters" refers to the viscoelastic rock physics model based on Eshelby inclusions detailed in Chapman, Mark, Sergei V. Zatsepin, and Stuart Crampin. "Derivation of a microstructural poroelastic model." Geophysical Journal International 151.2 (2002): 427-451.
+The reason rocks and fluids are defined not as associations but with numerical values is to reduce the chance of mis-spelling seeing as the models rely on spelling of association keys to be uniform. The option "MicrocrackParameters" refers to the viscoelastic rock physics model based on Eshelby inclusions detailed in Chapman, Mark, Sergei V. Zatsepin, and Stuart Crampin. "Derivation of a microstructural poroelastic model." Geophysical Journal International 151.2 (2002): 427-451.
 
 This way, a new rock physics model can be implemented at the rock definition stage and calculation of its output can be performed by checking if the relevant options are defined.
 
