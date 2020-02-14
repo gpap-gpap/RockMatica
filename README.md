@@ -1,5 +1,12 @@
 # RockMatica
-A rock physics and wave modelling package for Mathematica. As it stands isotropic and TI anisotropic elastic and viscoelastic tensors are supported. Example workflow:
+A rock physics and wave modelling package for Mathematica. As it stands isotropic and TI anisotropic elastic and viscoelastic tensors are supported. The package consists of subpackages: 
+-`Base`: base function definitions for rocks and fluids,
+-`Moduli`: definitions of elastic and viscoelastic moduli
+-`MultiFluid`: definitions of properties of effective fluids from mixtures
+-`Waves`: definitions of wavefield modelling code using the reflectivity method
+-`Wedge`: definitions of convolution modelling code and inversion using pursuit methods
+
+Example workflow:
 
 ## Define rocks/fluids
 The command 
