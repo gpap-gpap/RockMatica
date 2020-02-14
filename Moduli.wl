@@ -217,7 +217,7 @@ $Failed]
 ]
 
 
-(* Using upvalues *)
+(*(* Using upvalues *)
 RockMatica`MultiFluid`rpFluidMix/:rpElasticTensor[a_RockMatica`Base`rpRock, RockMatica`MultiFluid`rpFluidMix[f1_RockMatica`Base`rpFluid, f2_RockMatica`Base`rpFluid, opts:OptionsPattern[]], opts2:OptionsPattern[]]:=
 	Module[{mult, ref},
 		mult=RockMatica`MultiFluid`rpFluidMix[f1, f2, opts];
@@ -228,7 +228,7 @@ RockMatica`MultiFluid`rpFluidMix/:rpElasticTensor[a_RockMatica`Base`rpRock, Rock
 		RockMatica`Base`rpRock["temp"]=ref;
 		RockMatica`Base`rpFluid["temp"]=mult[[1;;3]];
 		rpElasticTensor[RockMatica`Base`rpRock["temp"],RockMatica`Base`rpFluid["temp"], opts2]
-	]
+	]*)
 
 
 (* ::Input::Initialization:: *)

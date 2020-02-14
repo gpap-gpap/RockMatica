@@ -10,8 +10,8 @@
 (* :Copyright: (c) 2019 Giorgos Papageorgiou *)
 
 
-Get["RockMatica`Moduli`"]
 Get["RockMatica`Base`"]
 Get["RockMatica`MultiFluid`"]
 Get["RockMatica`Waves`"]
+Get["RockMatica`Moduli`"]
 Get["RockMatica`Wedge`"]

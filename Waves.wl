@@ -51,6 +51,8 @@ rpWLayerModel[cijs:{_?ArrayQ..},rhos:{_NumericQ..},thicknesses:{___NumericQ}]/;
 (Length@cijs==Length@rhos==Length@thicknesses+2):= 
 
 
+
+
 (* ::Input::Initialization:: *)
 tlSetLayer[index_Integer,{c11_?NumericQ, c13_?NumericQ, c33_?NumericQ, c44_?NumericQ, \[Rho]_Real}]/;(Positive[index]):=
  tlLayer[index]=N@{c11,c13,c33,c44,\[Rho]};
