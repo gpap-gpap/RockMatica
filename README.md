@@ -16,7 +16,7 @@ The command
 <<RockMatica` (* Assumes the repository is cloned in $UserBaseDirectory/RockMatica *)
 rpRock["RockName", rock properties]
 ```
-defines an `npRock` object (an association with ``` "ParameterName"->ParameterValue ```). The rock properties supported can be show by running ``` ?rpRock```. Depending on the number of parameters given the program assumes that the rock defined is isotropic (if only bulk and shear modulus are given) or TI with symmetry along the z-axis (VTI).
+defines an `rpRock` object (an association with ``` "ParameterName"->ParameterValue ```). The rock properties supported can be show by running ``` ?rpRock```. Depending on the number of parameters given the program assumes that the rock defined is isotropic (if only bulk and shear modulus are given) or TI with symmetry along the z-axis (VTI).
 
 Likewise, to define a fluid, one calls
 ```Mathematica 
