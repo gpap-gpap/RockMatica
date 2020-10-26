@@ -217,14 +217,21 @@ With[{w=rpWedgeElastWedgeRef[maxT, tSteps, freq, FilterRules[{opts},Options[rpWe
 
 
 Options[rpInitiatePhasedWaveletDictionary]={sampleRate->$SampleRate, maxSamples->$MaxSamples, threshold->0.0001, scaleType->"unbiased"};
-rpInitiatePhasedWaveletDictionary[maxAbsFreq_:(_?NumericQ), freq_:$$WaveletFrequency, opts:OptionsPattern[]]:=
+rpInitiatePhasedWaveletDictionary[maxAbsFreq:(_?NumericQ), freq_:$$WaveletFrequency, opts:OptionsPattern[]]:=
 With[{sRate=OptionValue[sampleRate], nSamps=OptionValue[maxSamples],thres=OptionValue[threshold]},
 With[{fr=Subdivide[0.,1/(2 sRate), nSamps]},
-SparseArray@Transpose@Threshold[Flatten[Table[With[{wlet=(*(#/Max@Abs@N@#)&*)Normalize@Chop@rpWedgeInvFourier@rpWedgeSymConjAr@(E^(I \[Phi])*rpWedgeWavelet[fr,freq])},
-With[{rot=(RotateRight[wlet, #][[nSamps+1;;]])&/@Range[0,nSamps]},
+	SparseArray@Transpose@
+	Threshold[
+	Flatten[
+	Table[
+		With[{wlet=Normalize@Chop@rpWedgeInvFourier@rpWedgeSymConjAr@(E^(I \[Phi])*rpWedgeWavelet[fr,freq])},
+			With[{rot=(RotateRight[wlet, #][[nSamps+1;;]])&/@Range[0,nSamps]},
 				rot
-		]
-	],{\[Phi],{-maxAbsFreq,0, maxAbsFreq}}],1],thres]
+				]
+			]
+		,{\[Phi],{-maxAbsFreq,0, maxAbsFreq}}]
+		,1]
+		,thres]
 	]
 ]
 

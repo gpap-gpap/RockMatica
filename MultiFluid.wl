@@ -15,22 +15,20 @@ BeginPackage["RockMatica`MultiFluid`"]
 
 
 (* ::Input::Initialization:: *)
-rpFluidMix::usage="rpFluidMix[fluid1_rpFluid, fluid2_rpFluid, FluidSaturation->s, capillaryParameter->q, BrooksCoreyParameters->{lambda,{SnwR, SwR}}]\
-	defines a FluidMix object assuming first fluid is wetting and second fluid nonwetting. The fluid mix is an association with the additional keys 'RelativePermeability', 'FirstFluidSaturation; and 'CapillaryParameter'. The name of the fluid mix follows the convention fluid1Name-fluid2Name-Mix ";
+rpFluidMix::usage="rpFluidMix[fluid1_rpFluid, fluid2_rpFluid] defines a FluidMix object assuming first fluid is wetting and second fluid nonwetting. The fluid mix is an association with the additional options 'BrooksCoreyParameters', 'FluidSaturation; and 'PatchParameter'. The name of the fluid mix follows the convention fluid1Name-fluid2Name-Mix ";
 
 
 (* ::Input::Initialization:: *)
 Begin["Private`"]
 
 
-Options[rpFluidMix] = {FluidSaturation->0., PatchParameter->1, BrooksCoreyParameters->{1,{0,0}}}
-SetAttributes[rpFluidMix,HoldAll];
+Options[rpFluidMix] = {"FluidSaturation"->0., "PatchParameter"->1, "BrooksCoreyParameters"->{1,{0,0}}}
 rpFluidMix[a_RockMatica`Base`rpFluid, b_RockMatica`Base`rpFluid, OptionsPattern[]]:=
 	Module[{bulk, visc, fluidName, brooksCorey, relperm, dens, s, q, l, K1, K2, eta1, eta2, rho1, rho2},
 		fluidName=a["FluidName"]<>"-"<>b["FluidName"]<>"-Mix";
-		s = OptionValue[FluidSaturation];
-		q = OptionValue[PatchParameter];
-		l = OptionValue[BrooksCoreyParameters];
+		s = OptionValue["FluidSaturation"];
+		q = OptionValue["PatchParameter"];
+		l = OptionValue["BrooksCoreyParameters"];
 		K1=a["FluidModulus"];
 		K2=b["FluidModulus"];
 		eta1=a["FluidViscosity"];

@@ -88,7 +88,7 @@ squirtIsotropic[mud_, Kd_, Km_, phi_, Kf_, epsilon_, aspectRatio_, tau_, omega_]
 	{4,4} -> musquirt,
 	{5,5} -> musquirt,
 	{6,6} -> musquirt}]
-    ]
+    ];
     
 squirtTIAnisotropic[lambda_, mu_, phi_, Kf_, epsilon_, epsilonf_, aspectRatio_, tau0_, omega_, lenrat_]:=Module[
 	{phic,phif,phip,gamma,gamma2,iota,beta,sigmac,nu,Kp,Kc,D1,D2,G1,G2,G3,F1,F2,k,L2,L4,tauf,taum,c},
@@ -154,7 +154,7 @@ SparseArray[{
 
 Options[rpElasticTensor] = {Viscoelastic->False, Frequency->None};
 SetAttributes[rpElasticTensor,HoldAll];
-rpElasticTensor[a_RockMatica`Base`rpRock, b_RockMatica`Base`rpFluid, OptionsPattern[]]:=
+rpElasticTensor[a_RockMatica`Base`rpRock, b_RockMatica`Base`rpFluid|b_RockMatica`MultiFluid`rpFluidMix, OptionsPattern[]]:=
 Module[{
 	elasticIsoQ = Query[{#DryModulus, #ShearModulus, #MineralModulus, #Porosity}&],
 	elasticTIQ = Query[{#C11, #C12, #C13, #C33, #C44, #MineralModulus, #Porosity}&],
